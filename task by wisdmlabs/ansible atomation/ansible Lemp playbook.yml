@@ -1,0 +1,114 @@
+#########################################provisioning playbook#####################################
+---
+
+hosts: all
+become: yes
+become_method: sudo
+gather_facts: true
+
+tasks:
+
+#############################################install nginx#############################################
+
+
+- name: Update the software package repository
+apt:
+update_cache: yes
+- name: Install nginx
+package:
+name: "{{ item }}"
+state: latest
+with_items:
+- nginx
+- wait_for:
+port: 80
+
+ - name: copy the nginx config file 
+      copy:
+        src: /root/ansible/nginx.conf
+        dest: /etc/nginx/nginx.conf
+      become: yes
+ 
+ - name: copy the content of the web site
+      copy:
+        src: /root/ansible/index.php
+        dest: /usr/share/nginx/html/index.php
+  - name: restart nginx
+      service:
+        name: nginx
+        state: restarted
+      become: yes
+
+
+######################################################install MYSQL ###########################################
+- name: Update the software package repository
+apt:
+update_cache: yes
+- name: Install MySQL
+package:
+name: "{{ item }}"
+state: latest
+with_items:
+- mysql-server
+- mysql-client
+- python-mysqldb
+- name: Start the server
+service:
+name: mysql
+state: started
+- wait_for:
+port: 3306
+- mysql_user:
+name: guest
+password: @Ninja1530
+encrypted: yes
+priv: '*.*:ALL,GRANT'
+state: present
+
+
+####################################################install PHP ############################################
+- name: Update the software package repository
+apt:
+update_cache: yes
+- name: Install PHP
+package:
+name: "{{ item }}"
+state: latest
+with_items:
+- php5
+- php5-mysql
+- git
+- mcrypt
+- nginx
+- php5-cli
+- php5-curl
+- php5-fpm
+- php5-intl
+- php5-json
+- php5-mcrypt
+- php5-sqlite
+- sqlite3
+
+- name: ensure php5-fpm cgi.fix_pathinfo=0
+    lineinfile: dest=/etc/php5/fpm/php.ini regexp='^(.*)cgi.fix_pathinfo=' line=cgi.fix_pathinfo=0
+    notify:
+      - restart php5-fpm
+      - restart nginx
+
+- name: enable php5 mcrypt module
+    shell: php5enmod mcrypt
+    args:
+      creates: /etc/php5/cli/conf.d/20-mcrypt.ini
+
+handlers:
+    - name: restart php5-fpm
+      service: name=php5-fpm state=restarted
+
+    - name: restart nginx
+      service: name=nginx state=restarted
+
+- name: enable php5 mcrypt module
+  shell: php5enmod mcrypt
+  args:
+    creates: /etc/php5/cli/conf.d/20-mcrypt.ini
+
