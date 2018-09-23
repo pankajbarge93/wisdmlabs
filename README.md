@@ -24,7 +24,7 @@ ANSIBLE AUTOMATION
 
 * index.php ->  this is the file which is deploy on the server by nginx which contains database and php connectivity code
 
-NOTE: ansible step by step screen shots are not taken 
+NOTE: Ansible step by step screen shots are not taken due to office schedule and work load I couldn't get enough time to explain details of Ansible and make documents for it. like DOCKER TASK. 
 ----------------------------------------------------------------------------------------------------------------------------------
 
 
